@@ -9,6 +9,17 @@ This is a generic UI for uploading data to a Data Liquidity Pool (DLP). This app
 3. A transaction is written on-chain, which DLP validators will pick up to verify your file
 4. The Satya Network (using Trusted Execution Environment) validates your contribution
 
+### What happens during upload?
+
+- When you upload a file, the app automatically generates an `account.json` file containing your connected wallet address in the following format:
+
+  ```json
+  {
+    "user": "<CONNECTED_WALLET>"
+  }
+  ```
+- Both your data file and this `account.json` are zipped together, encrypted client-side, and then uploaded to the Vany-hosted IPFS server.
+
 ## Features
 
 - Secure wallet connection with Wagmi 
