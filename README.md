@@ -5,7 +5,7 @@ This is a generic UI for uploading data to a Data Liquidity Pool (DLP). This app
 ## How It Works
 
 1. Connect your EVM compatible wallet, which holds some $VANA tokens
-2. Upload your data file, which is encrypted client-side before being stored on a Vany-hosted IPFS server
+2. Upload your data file, which is encrypted client-side before being stored on IPFS via Pinata
 3. A transaction is written on-chain, which DLP validators will pick up to verify your file
 4. The Satya Network (using Trusted Execution Environment) validates your contribution
 
@@ -18,13 +18,13 @@ This is a generic UI for uploading data to a Data Liquidity Pool (DLP). This app
     "user": "<CONNECTED_WALLET>"
   }
   ```
-- Both your data file and this `account.json` are zipped together, encrypted client-side, and then uploaded to the Vany-hosted IPFS server.
+- Both your data file and this `account.json` are zipped together, encrypted client-side, and then uploaded to IPFS via Pinata.
 
 ## Features
 
 - Secure wallet connection with Wagmi 
 - Client-side encryption using OpenPGP before any data leaves your browser
-- Integration with a Vany-hosted IPFS server for decentralized storage 
+- Integration with Pinata for decentralized IPFS storage 
 - On-chain transaction writing using Vana smart contracts
 - TEE-based data validation through the Satya Network
 - Responsive UI built with modern components

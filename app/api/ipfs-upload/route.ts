@@ -1,31 +1,52 @@
 import { NextResponse } from "next/server";
+import axios from "axios";
+import FormData from "form-data";
 
-// Real IPFS upload logic using the IPFS HTTP API
-async function uploadToIpfs(file: Buffer): Promise<string> {
-  const endpoint = process.env.IPFS_ENDPOINT;
-  if (!endpoint) {
-    throw new Error("IPFS_ENDPOINT is not set in the environment");
+// Upload file to Pinata using API Key and Secret
+async function uploadToPinata(file: Buffer): Promise<string> {
+  const apiKey = process.env.PINATA_API_KEY;
+  const privateKey = process.env.PINATA_PRIVATE_KEY;
+  if (!apiKey || !privateKey) {
+    throw new Error("PINATA_API_KEY or PINATA_PRIVATE_KEY is not set in the environment");
   }
 
-  // Prepare multipart/form-data
+  // Prepare multipart/form-data using the 'form-data' npm package
   const formData = new FormData();
-  formData.append("file", new Blob([file]), "file");
-
-  // Use fetch to POST to the IPFS API
-  const response = await fetch(`${endpoint}/api/v0/add`, {
-    method: "POST",
-    body: formData,
+  formData.append("file", file, {
+    filename: "file.zip",
+    contentType: "application/zip",
   });
 
-  if (!response.ok) {
-    throw new Error(`IPFS upload failed: ${await response.text()}`);
-  }
+  // Pinata API endpoint
+  const url = "https://api.pinata.cloud/pinning/pinFileToIPFS";
 
-  // The response is NDJSON, but for a single file, the first line is the result
-  const text = await response.text();
-  const firstLine = text.split("\n")[0];
-  const result = JSON.parse(firstLine);
-  return result.Hash;
+  try {
+    // Use axios to POST to Pinata
+    const response = await axios.post(url, formData, {
+      headers: {
+        "pinata_api_key": apiKey,
+        "pinata_secret_api_key": privateKey,
+        ...formData.getHeaders(),
+      },
+      maxBodyLength: Infinity,
+    });
+
+    if (response.status !== 200) {
+      throw new Error(`Pinata upload failed: ${response.statusText}`);
+    }
+
+    // Pinata returns the hash in IpfsHash
+    return response.data.IpfsHash;
+  } catch (err: any) {
+    console.error("Pinata upload error (detailed):", err);
+    if (err.response) {
+      throw new Error(`Pinata error: ${err.response.status} ${err.response.statusText} - ${JSON.stringify(err.response.data)}`);
+    } else if (err.request) {
+      throw new Error(`No response from Pinata: ${err.message}`);
+    } else {
+      throw new Error(`Pinata upload error: ${err.message}`);
+    }
+  }
 }
 
 export async function POST(request: Request) {
@@ -37,10 +58,10 @@ export async function POST(request: Request) {
     }
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    const ipfsHash = await uploadToIpfs(buffer);
+    const ipfsHash = await uploadToPinata(buffer);
     return NextResponse.json({ ipfsHash });
-  } catch (error) {
-    console.error("IPFS upload error:", error);
-    return NextResponse.json({ error: "Failed to upload to IPFS" }, { status: 500 });
+  } catch (error: any) {
+    console.error("Pinata upload error (POST handler):", error, error?.stack);
+    return NextResponse.json({ error: error.message || "Failed to upload to Pinata", stack: error.stack }, { status: 500 });
   }
 } 

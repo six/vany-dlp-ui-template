@@ -54,9 +54,8 @@ export function useDataUpload() {
       }
       const data = await response.json();
       const ipfsHash = data.ipfsHash;
-      const ipfsEndpoint = process.env.NEXT_PUBLIC_IPFS_ENDPOINT || "https://ipfs.io";
-      // Remove trailing slash if present
-      const gateway = ipfsEndpoint.replace(/\/$/, "");
+      // Use Pinata gateway for public IPFS link
+      const gateway = "https://gateway.pinata.cloud";
       const ipfsUrl = `${gateway}/ipfs/${ipfsHash}`;
       return { ipfsHash, ipfsUrl };
     } finally {
